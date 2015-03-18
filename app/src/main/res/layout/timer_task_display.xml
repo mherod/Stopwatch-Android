@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp">
+
+    <TextView
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:gravity="center"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="--:--"
+        android:textSize="72dp"
+        android:alpha="0.8"
+        android:id="@+id/timer_text"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/circle_timer"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <ImageView
+        android:layout_width="75dp"
+        android:layout_height="80dp"
+        android:src="@drawable/ic_play_light"
+        android:background="@drawable/circle_play"
+        android:scaleType="centerInside"
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/play_imgbtn"
+        android:layout_alignBottom="@+id/timer_text"
+        android:layout_alignRight="@+id/timer_text"
+        android:layout_alignEnd="@+id/timer_text" />
+
+</RelativeLayout>

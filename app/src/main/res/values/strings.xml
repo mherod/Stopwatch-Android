@@ -2,5 +2,9 @@
     <string name="app_name">Stopwatch</string>
 
     <string name="hello_world">Hello world!</string>
+
+    <string name="action_reset_all">Reset all</string>
+
     <string name="action_settings">Settings</string>
+
 </resources>
