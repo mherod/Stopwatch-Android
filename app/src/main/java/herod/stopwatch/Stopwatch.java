@@ -1,7 +1,6 @@
 package herod.stopwatch;
 
 import android.os.SystemClock;
-import android.util.Log;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -20,26 +19,21 @@ public class Stopwatch implements Serializable {
 
     public Stopwatch() {
         reset();
-
-        Log.d("Stopwatch", "New stopwatch instance");
     }
 
-    public boolean isActive() {
-        return active;
+    public boolean isActive(boolean orPaused) {
+        return active || (orPaused && startTime > 0);
     }
 
     public void reset() {
         totalTime = 0;
         startTime = 0;
         active = false;
-
-        // lapTimes.add(totalTime); // Create a zero entry in the laps
     }
 
     public void start() {
         active = true;
         startTime = SystemClock.elapsedRealtime();
-        // TODO : consider changes to the system time mid use
     }
 
     public void pause() {

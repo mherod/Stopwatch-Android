@@ -61,15 +61,4 @@
 
     </RelativeLayout>
 
-    <ImageButton
-        android:layout_width="@dimen/timer_button_size"
-        android:layout_height="@dimen/timer_button_size"
-        android:id="@+id/imageButton"
-        android:src="@drawable/ic_reset_light"
-        android:background="@drawable/circle_action"
-        android:scaleType="centerInside"
-        android:contentDescription="@string/action_reset"
-        android:layout_below="@+id/linearLayout_timer_buttons"
-        android:layout_centerHorizontal="true" />
-
 </RelativeLayout>

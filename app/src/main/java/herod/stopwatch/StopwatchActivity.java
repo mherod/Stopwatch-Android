@@ -36,8 +36,8 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
 
     private TextView mStopwatchTextView;
 
-    private ImageView mPlayImageButton;
-    private ImageView mResetImageButton;
+    private ImageView mPlayImageButton; // Used for both start and pause actions
+    private ImageView mResetImageButton; // Used for both lap and reset actions
 
     private RecyclerView mLapRecyclerView;
 
@@ -187,7 +187,7 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
     public void syncComponents() {
         Stopwatch stopwatch = getStopwatch();
 
-        if (stopwatch.isActive()) {
+        if (stopwatch.isActive(false)) {
             mPlayImageButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_pause_light));
         } else {
             mPlayImageButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_play_light));

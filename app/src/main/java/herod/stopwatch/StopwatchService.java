@@ -4,9 +4,9 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Binder;
@@ -20,6 +20,12 @@ import android.util.Log;
 public class StopwatchService extends Service implements Runnable {
 
     private final String TAG = StopwatchService.class.getSimpleName();
+
+    private final String CMD = "cmd";
+    private final String CMD_TOGGLE = "toggle";
+    private final String CMD_RESET = "reset";
+
+    private final ServiceBroadcastReceiver mServiceBroadcastReceiver = new ServiceBroadcastReceiver();
 
     private final IBinder mServiceBinder = new ServiceBinder();
 
@@ -41,6 +47,7 @@ public class StopwatchService extends Service implements Runnable {
 
     @Override
     public void onCreate() {
+        Log.d(TAG, "onCreate");
 
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -50,12 +57,13 @@ public class StopwatchService extends Service implements Runnable {
         mStopwatch = new Stopwatch();
 
         mNotificationBuilder = createNotification(this);
-
-        Log.d(TAG, "Service created");
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
+        // registerReceiver(mServiceBroadcastReceiver, new IntentFilter("herod.stopwatch"));
+        // the IntentFilter isn't really relevant for our usage
 
         try {
             mStopwatchOngoingThread.start();
@@ -63,7 +71,7 @@ public class StopwatchService extends Service implements Runnable {
             // Thrown gracefully if the thread has already started
         }
 
-        // If started via intent (not bound) we want to run the service until
+        // When started via intent (not bound) we want to run the service until
         // explicitly stopped
 
         Log.d(TAG, "Service started");
@@ -84,28 +92,20 @@ public class StopwatchService extends Service implements Runnable {
 
     @Override
     public IBinder onBind(Intent intent) {
-        clientAttached = true;
-
         Log.d(TAG, "New client bound");
+
+        clientAttached = true;
 
         return mServiceBinder;
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
-        clientAttached = false;
-
         Log.d(TAG, "All clients unbound");
 
-        // All clients are unbound from the service
-        // We need to start the service in the foreground if our stopwatch is still active
-        // otherwise we're all done and the service should quit
-        if (mStopwatch.isActive()) {
+        clientAttached = false;
 
-        } else {
-
-            serviceActive = false;
-        }
+        serviceActive = activateOngoingStopwatch();
 
         // mStopwatch = null; // null this instances reference to prevent leaks and radical threads
         return true;
@@ -114,18 +114,37 @@ public class StopwatchService extends Service implements Runnable {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
         Log.d(TAG, "onDestroy");
+
+        // unregisterReceiver(mServiceBroadcastReceiver);
     }
 
     public NotificationCompat.Builder createNotification(Context context) {
-        final Resources res = context.getResources();
-        final Bitmap picture = BitmapFactory.decodeResource(res, R.drawable.ic_stopwatch_light);
+
+        final Intent toggleIntent = new Intent(CMD_TOGGLE)
+                .setClass(context, ServiceBroadcastReceiver.class);
+
+        final Intent resetIntent = new Intent(CMD_TOGGLE)
+                .setClass(context, ServiceBroadcastReceiver.class);
+
+        PendingIntent togglePendingIntent = PendingIntent.getBroadcast(
+                this,
+                0,
+                toggleIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        PendingIntent resetPendingIntent = PendingIntent.getBroadcast(
+                this,
+                0,
+                resetIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        final Bitmap picture = BitmapFactory.decodeResource(getResources(), R.drawable.ic_stopwatch_light);
 
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
                 .setSmallIcon(R.drawable.ic_stopwatch_light)
-                .setContentTitle(res.getString(R.string.app_name))
-                .setContentText(res.getString(R.string.app_name))
+                .setContentTitle(getString(R.string.app_name))
+                .setContentText(getString(R.string.app_name))
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setLargeIcon(picture)
                 .setAutoCancel(true)
@@ -138,17 +157,13 @@ public class StopwatchService extends Service implements Runnable {
                                 PendingIntent.FLAG_UPDATE_CURRENT))
                 .addAction(
                         R.drawable.ic_pause_light,
-                        res.getString(R.string.action_pause),
-                        PendingIntent.getActivity(context, 0,
-                                new Intent(context, StopwatchActivity.class),
-                                PendingIntent.FLAG_UPDATE_CURRENT)
+                        getString(R.string.action_pause),
+                        togglePendingIntent
                 )
                 .addAction(
                         R.drawable.ic_reset_light,
-                        res.getString(R.string.action_reset),
-                        PendingIntent.getActivity(context, 0,
-                                new Intent(context, StopwatchActivity.class),
-                                PendingIntent.FLAG_UPDATE_CURRENT)
+                        getString(R.string.action_reset),
+                        resetPendingIntent
                 );
 
         return builder;
@@ -214,12 +229,37 @@ public class StopwatchService extends Service implements Runnable {
     }
 
     private boolean activateOngoingStopwatch() {
-        return mStopwatch != null && mStopwatch.isActive() && clientAttached == false;
+        return mStopwatch != null && mStopwatch.isActive(true) && clientAttached == false;
     }
 
     public class ServiceBinder extends Binder {
         StopwatchService getService() {
             return StopwatchService.this;
+        }
+    }
+
+    public class ServiceBroadcastReceiver extends BroadcastReceiver {
+
+        public ServiceBroadcastReceiver() {
+
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            Log.d(TAG, "onRec");
+
+            CharSequence cmd = intent.getCharSequenceExtra(CMD);
+            if (cmd == null) {
+                return;
+            } else if (cmd.equals(CMD_TOGGLE)) {
+                mStopwatch.toggle();
+            } else if (cmd.equals(CMD_RESET)) {
+                mStopwatch.reset();
+            }
+
+            Log.d(TAG, CMD);
+
         }
     }
 
