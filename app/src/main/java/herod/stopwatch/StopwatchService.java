@@ -19,12 +19,6 @@ import android.util.Log;
  */
 public class StopwatchService extends Service implements Runnable {
 
-    public static final String KEY_WATCH = "watch";
-
-    public static final int START_ONGOING = 1;
-    public static final int STOP_ONGOING = 2;
-    public static final int STOP_SERVICE = 3;
-
     private final String TAG = StopwatchService.class.getSimpleName();
 
     private final IBinder mServiceBinder = new ServiceBinder();
@@ -42,7 +36,7 @@ public class StopwatchService extends Service implements Runnable {
     private boolean clientAttached = false;
 
     public StopwatchService() {
-        Log.d(TAG, "NEW SERVICE INSTANCE HAHHAHAHAHAH");
+
     }
 
     @Override
@@ -126,10 +120,10 @@ public class StopwatchService extends Service implements Runnable {
 
     public NotificationCompat.Builder createNotification(Context context) {
         final Resources res = context.getResources();
-        final Bitmap picture = BitmapFactory.decodeResource(res, R.drawable.ic_launcher_stopwatch);
+        final Bitmap picture = BitmapFactory.decodeResource(res, R.drawable.ic_stopwatch_light);
 
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
-                .setSmallIcon(R.drawable.ic_play_light)
+                .setSmallIcon(R.drawable.ic_stopwatch_light)
                 .setContentTitle(res.getString(R.string.app_name))
                 .setContentText(res.getString(R.string.app_name))
                 .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -137,17 +131,25 @@ public class StopwatchService extends Service implements Runnable {
                 .setAutoCancel(true)
                 .setTicker(null)
                 // .setNumber(1) // TODO: number of active timers or saved lap
+                .setShowWhen(false)
                 .setContentIntent(
                         PendingIntent.getActivity(context, 0,
                                 new Intent(context, StopwatchActivity.class),
                                 PendingIntent.FLAG_UPDATE_CURRENT))
-                /* .addAction(
+                .addAction(
                         R.drawable.ic_pause_light,
-                        res.getString(R.string.app_name),
+                        res.getString(R.string.action_pause),
                         PendingIntent.getActivity(context, 0,
                                 new Intent(context, StopwatchActivity.class),
                                 PendingIntent.FLAG_UPDATE_CURRENT)
-                )*/ ;
+                )
+                .addAction(
+                        R.drawable.ic_reset_light,
+                        res.getString(R.string.action_reset),
+                        PendingIntent.getActivity(context, 0,
+                                new Intent(context, StopwatchActivity.class),
+                                PendingIntent.FLAG_UPDATE_CURRENT)
+                );
 
         return builder;
     }
@@ -172,7 +174,7 @@ public class StopwatchService extends Service implements Runnable {
 
                     String timerText = "";
                     try {
-                        timerText = Stopwatch.formatElapsedTime(mStopwatch.getCurrentTime());
+                        timerText = Stopwatch.formatElapsedTime(mStopwatch.getCurrentTime(), false);
                     } catch (NullPointerException npe) {
                         // the unlikely event that mStopwatch becomes null straight after entry condition
                     }
@@ -183,7 +185,7 @@ public class StopwatchService extends Service implements Runnable {
                     mNotificationManager.notify(NOTIFICATION_ID, notification);
 
                     try { // Throttle notification updates to be friendly to Android
-                        Thread.sleep(30);
+                        Thread.sleep(500);
                     } catch (InterruptedException ie) {
                         continue;
                     }

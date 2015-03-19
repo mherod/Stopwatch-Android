@@ -8,10 +8,9 @@
         <item name="colorPrimary">@color/primaryColour</item>
         <item name="colorAccent">@color/accentColour</item>
 
-        <item name="android:colorButtonNormal">@color/accentColour</item>
         <item name="android:textColorPrimary">@android:color/white</item>
         <item name="android:actionBarStyle">@style/ToolbarTheme</item>
-        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:windowBackground">@color/backgroundColour</item>
     </style>
 
     <style name="ToolbarTheme" parent="ThemeOverlay.AppCompat.ActionBar">

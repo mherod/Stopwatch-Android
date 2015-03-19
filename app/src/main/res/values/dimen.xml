@@ -4,4 +4,6 @@
     <dimen name="elevation_high">4dp</dimen>
 
     <dimen name="timer_button_margin">80dp</dimen>
+
+    <dimen name="timer_button_size">50dp</dimen>
 </resources>

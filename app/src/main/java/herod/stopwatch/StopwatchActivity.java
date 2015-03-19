@@ -7,10 +7,13 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -36,11 +39,15 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
     private ImageView mPlayImageButton;
     private ImageView mResetImageButton;
 
+    private RecyclerView mLapRecyclerView;
+
+    private StopwatchLapAdapter mStopwatchLapAdapter;
+
     private Thread mStopwatchThread;
 
     private boolean requestThreadStop = false;
 
-    private String currentTimerText = "--:--";
+    private String currentTimerText = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,9 +80,21 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
             }
         });
 
-        startService(new Intent(this, StopwatchService.class)); // Create the service
-        // Without this Android will kill the service after unbinding, where we would like
-        // to keep it in case we're running an ongoing timer
+        mLapRecyclerView = (RecyclerView) findViewById(R.id.timer_lap_recycler);
+
+        mLapRecyclerView.setHasFixedSize(true);
+        mLapRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        mStopwatchLapAdapter = new StopwatchLapAdapter();
+
+        mLapRecyclerView.setAdapter(mStopwatchLapAdapter);
+        mLapRecyclerView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                Log.d("", "TOUCH ---  " + motionEvent.getActionMasked());
+                return false;
+            }
+        });
     }
 
     @Override
@@ -87,6 +106,10 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
         } catch (IllegalThreadStateException iste) {
             // Thrown gracefully if the thread has already started
         }
+
+        startService(new Intent(this, StopwatchService.class)); // Create the service
+        // Without this Android will kill the service after unbinding, where we would like
+        // to keep it in case we're running an ongoing timer
 
         bindService( // Bind to the service
                 new Intent(this, StopwatchService.class),
@@ -152,7 +175,7 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
             } catch (NullPointerException npe) {
                 continue;
             }
-            currentTimerText = Stopwatch.formatElapsedTime(currentTime);
+            currentTimerText = Stopwatch.formatElapsedTime(currentTime, true);
             runOnUiThread(updateStopwatch);
         }
     }
@@ -162,12 +185,16 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
     }
 
     public void syncComponents() {
-        boolean isActive = getStopwatch().isActive();
-        if (isActive) {
+        Stopwatch stopwatch = getStopwatch();
+
+        if (stopwatch.isActive()) {
             mPlayImageButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_pause_light));
         } else {
             mPlayImageButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_play_light));
         }
+
+        // mStopwatchLapAdapter.
+
     }
 
     public final ServiceConnection mServiceConnection = new ServiceConnection() {

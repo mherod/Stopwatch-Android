@@ -2,6 +2,7 @@
 <resources>
     <color name="primaryColour">#E65100</color>
     <color name="accentColour">#795548</color>
+    <color name="backgroundColour">#EFEBE9</color>
 
     <color name="timerBkgColour">#EF6C00</color>
 </resources>

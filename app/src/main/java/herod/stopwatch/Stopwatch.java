@@ -32,6 +32,8 @@ public class Stopwatch implements Serializable {
         totalTime = 0;
         startTime = 0;
         active = false;
+
+        // lapTimes.add(totalTime); // Create a zero entry in the laps
     }
 
     public void start() {
@@ -67,15 +69,15 @@ public class Stopwatch implements Serializable {
         return SystemClock.elapsedRealtime() - startTime;
     }
 
-    public static String formatElapsedTime(long time) {
+    public static String formatElapsedTime(long time, boolean ms) {
         int extra = (int) (time % 1000) / 10;
         int secs = (int) (time / 1000);
         int mins = secs / 60;
         int hours = (int) (mins / 60);
-        return formatTimePart(hours) + ":" +
+        return (hours > 0 ? formatTimePart(hours) + ":" : "") +
                 formatTimePart(mins) + ":" +
-                formatTimePart(secs % 60) + "." +
-                formatTimePart(extra);
+                formatTimePart(secs % 60) +
+                (ms ? "." + formatTimePart(extra) : "");
     }
 
     private static String formatTimePart(int i) {
