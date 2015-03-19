@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primaryColour">#00BCD4</color>
-    <color name="accentColour">#00838F</color>
+    <color name="primaryColour">#E65100</color>
+    <color name="accentColour">#795548</color>
 
-    <color name="timerBkgColour">#B2EBF2</color>
+    <color name="timerBkgColour">#EF6C00</color>
 </resources>

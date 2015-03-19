@@ -16,30 +16,14 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
-    <Button
+    <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Reset"
-        android:id="@+id/button_reset"
-        android:layout_below="@+id/timer_task_display"
-        android:layout_toLeftOf="@+id/button_start"
-        android:layout_toStartOf="@+id/button_start" />
+        android:id="@+id/listView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/timer_task_display" />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Start"
-        android:id="@+id/button_start"
-        android:layout_alignTop="@+id/button_stop"
-        android:layout_centerHorizontal="true" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Stop"
-        android:id="@+id/button_stop"
-        android:layout_alignTop="@+id/button_reset"
-        android:layout_toRightOf="@+id/button_start"
-        android:layout_toEndOf="@+id/button_start" />
 
 </RelativeLayout>

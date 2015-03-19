@@ -3,9 +3,16 @@
     android:layout_height="fill_parent">
 
     <include
+        layout="@layout/toolbar_default"
+        android:id="@+id/toolbar_main"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+
+    <include
         layout="@layout/timer_main"
         android:id="@+id/timer_main"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:layout_below="@+id/toolbar_main" />
 
 </RelativeLayout>

@@ -7,4 +7,9 @@
 
     <string name="action_settings">Settings</string>
 
+    <string name="action_play">Play</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_lap">Lap</string>
+    <string name="action_reset">Reset</string>
+
 </resources>
