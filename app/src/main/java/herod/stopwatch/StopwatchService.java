@@ -22,8 +22,6 @@ public class StopwatchService extends Service implements Runnable {
 
     private final String TAG = StopwatchService.class.getSimpleName();
 
-    private final String CMD = "cmd";
-    private final String CMD_TOGGLE = "toggle";
     private final String CMD_RESET = "reset";
 
     private ServiceBroadcastReceiver mServiceBroadcastReceiver;
@@ -66,7 +64,6 @@ public class StopwatchService extends Service implements Runnable {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(CMD_TOGGLE);
         intentFilter.addAction(CMD_RESET);
         registerReceiver(mServiceBroadcastReceiver, intentFilter);
 
@@ -124,6 +121,11 @@ public class StopwatchService extends Service implements Runnable {
         unregisterReceiver(mServiceBroadcastReceiver);
     }
 
+    /**
+     * Used to create the initial notification builder used to display the ongoing stopwatch
+     * @param context
+     * @return a notification builder
+     */
     public NotificationCompat.Builder createNotification(Context context) {
 
         final PendingIntent resetPendingIntent = PendingIntent.getBroadcast(

@@ -56,8 +56,7 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
         mStopwatchThread = new Thread(this);
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar_main);
-        setSupportActionBar(mToolbar);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        setSupportActionBar(mToolbar); // Use support action bar to support backwards of API 21
 
         mStopwatchTextView = (TextView) findViewById(R.id.timer_text);
 
@@ -68,7 +67,7 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
             @Override
             public void onClick(View view) {
                 getStopwatch().toggle();
-                syncComponents();
+                syncComponents(); // Sync components after toggle stopwatch
             }
         });
         mResetImageButton.setOnClickListener(new View.OnClickListener() {
@@ -80,8 +79,8 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
                 } else {
                     stopwatch.reset();
                 }
-                syncComponents();
-                syncLapRecyclerView();
+                syncComponents(); // Sync components after lap/reset stopwatch
+                syncLapRecyclerView(); // Sync lap records after lap/reset
             }
         });
 
@@ -98,7 +97,7 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
     protected void onResume() {
         super.onResume();
 
-        try {
+        try { // Start the background activity thread
             mStopwatchThread.start();
         } catch (IllegalThreadStateException iste) {
             // Thrown gracefully if the thread has already started
@@ -118,6 +117,9 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
     protected void onPause() {
         if (mServiceConnection != null) {
             unbindService(mServiceConnection);
+            // Unbind when the activity is paused as connection is not necessary and
+            // the service will be notified that a client is not bound and so will
+            // trigger the ongoing mode.
         }
         super.onPause();
     }
@@ -125,6 +127,8 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
     @Override
     protected void onDestroy() {
         requestThreadStop = true;
+        // Tell the thread to stop to quit it gracefully and
+        // ensure it doesn't run away
         super.onDestroy();
     }
 
@@ -141,12 +145,19 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Update the stopwatchTextView with the current timer value. This runnable must be handled
+     * on the same thread as the UI
+     */
     final Runnable updateStopwatch = new Runnable() {
         public void run() {
             mStopwatchTextView.setText(currentTimerText);
         }
     };
 
+    /**
+     * Background thread operation for the activity. Handles the updating of the stopwatch time.
+     */
     @Override
     public void run() {
         while (!requestThreadStop) {
@@ -166,6 +177,14 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
         }
     }
 
+    /**
+     * Get a reference to the service stopwatch. This should never be stored globally and only
+     * used at local scope to mitigate possibility of a leak. The service will always be available
+     * whilst the activity is bound to it so unless for another reason the service is stopped
+     * (in which case we'd have bigger problems) this method will perform correctly.
+     *
+     * @return A reference to the service stopwatch
+     */
     public Stopwatch getStopwatch() {
         return mStopwatchService.getStopwatch();
     }
@@ -197,6 +216,8 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
             mStopwatchService = ((StopwatchService.ServiceBinder) binder).getService();
             mStopwatchService.notifyClientAttached();
 
+            // On connect synchronise the components to correctly represent the current stopwatch
+            // information
             syncComponents();
             syncLapRecyclerView();
         }
