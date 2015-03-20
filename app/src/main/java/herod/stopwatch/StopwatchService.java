@@ -44,10 +44,14 @@ public class StopwatchService extends Service implements Runnable {
 
     }
 
+    /**
+     * Called when the service is created
+     */
     @Override
     public void onCreate() {
         Log.d(TAG, "onCreate");
 
+        // Get a reference to the NotificationManager
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         mServiceBroadcastReceiver = new ServiceBroadcastReceiver();
@@ -57,18 +61,22 @@ public class StopwatchService extends Service implements Runnable {
 
         mStopwatch = new Stopwatch();
 
+        // Create NotificationCompat.Builder
         mNotificationBuilder = createNotification(this);
     }
 
+    /**
+     * Called when the service is starting
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(CMD_RESET);
+        intentFilter.addAction(CMD_RESET); // Register the broadcast receiver to listen for action
         registerReceiver(mServiceBroadcastReceiver, intentFilter);
 
         try {
-            mStopwatchOngoingThread.start();
+            mStopwatchOngoingThread.start(); // Start service thread
         } catch (IllegalThreadStateException iste) {
             // Thrown gracefully if the thread has already started
         }
@@ -80,6 +88,9 @@ public class StopwatchService extends Service implements Runnable {
         return START_STICKY;
     }
 
+    /**
+     * @return get a reference to the stopwatch timer
+     */
     public Stopwatch getStopwatch() {
         return mStopwatch;
     }
@@ -92,6 +103,9 @@ public class StopwatchService extends Service implements Runnable {
         clientAttached = true;
     }
 
+    /**
+     * Called when a new client is binding to the service
+     */
     @Override
     public IBinder onBind(Intent intent) {
         Log.d(TAG, "New client bound");
@@ -101,18 +115,24 @@ public class StopwatchService extends Service implements Runnable {
         return mServiceBinder;
     }
 
+    /**
+     * Called when all clients have unbound from the service
+     */
     @Override
     public boolean onUnbind(Intent intent) {
         Log.d(TAG, "All clients unbound");
 
         clientAttached = false;
 
-        serviceActive = activateOngoingStopwatch();
+        serviceActive = activateOngoingStopwatch(); // Either true or false, false will quit service
 
         // mStopwatch = null; // null this instances reference to prevent leaks and radical threads
         return true;
     }
 
+    /**
+     * Called when the service is shutting down
+     */
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -130,8 +150,7 @@ public class StopwatchService extends Service implements Runnable {
 
         final PendingIntent resetPendingIntent = PendingIntent.getBroadcast(
                 this, 0, new Intent(CMD_RESET), PendingIntent.FLAG_UPDATE_CURRENT);
-
-        int lapCount = getStopwatch().getLapTimes().size();
+        // PendingIntent for Broadcast
 
         final Bitmap picture = BitmapFactory.decodeResource(getResources(), R.drawable.ic_stopwatch_light);
 
@@ -139,11 +158,10 @@ public class StopwatchService extends Service implements Runnable {
                 .setSmallIcon(R.drawable.ic_stopwatch_light)
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText(getString(R.string.app_name))
-                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setPriority(NotificationCompat.PRIORITY_LOW) // No notification
                 .setLargeIcon(picture)
                 .setAutoCancel(true)
                 .setTicker(null)
-                .setNumber(lapCount)
                 .setShowWhen(false)
                 .setContentIntent(
                         PendingIntent.getActivity(context, 0,
@@ -173,24 +191,31 @@ public class StopwatchService extends Service implements Runnable {
                         .build();
 
                 mNotificationManager.notify(NOTIFICATION_ID, notification);
+                // post initial notification
 
+                // start the service foreground to make it unlikely that the service would be
+                // destroyed
                 startForeground(NOTIFICATION_ID, notification);
 
-                 do {
+                do {
 
                     String timerText = "";
                     try {
                         timerText = Stopwatch.formatElapsedTime(mStopwatch.getCurrentTime(), false);
                     } catch (NullPointerException npe) {
-                        // the unlikely event that mStopwatch becomes null straight after entry condition
+                        // the unlikely event that mStopwatch becomes null straight after entry
+                        // condition but handled this case anyway
                     }
 
-                     notification = mNotificationBuilder
-                             .setContentText(timerText)
-                             .build();
+                    // update notification with the time of the stopwatch
+                    notification = mNotificationBuilder
+                            .setContentText(timerText)
+                            .build();
                     mNotificationManager.notify(NOTIFICATION_ID, notification);
 
-                    try { // Throttle notification updates to be friendly to Android
+                    try {
+                        // Throttle notification updates to be friendly to Android
+                        // half a second to keep the updates timely
                         Thread.sleep(500);
                     } catch (InterruptedException ie) {
                         continue;
@@ -199,15 +224,20 @@ public class StopwatchService extends Service implements Runnable {
 
                 stopForeground(true);
 
+                // Stopwatch is no longer in ongoing condition and so we can stop the foreground
+                // mode of the service
+
             }
 
             try {
-                Thread.sleep(100);
+                Thread.sleep(100); // Friendly
             } catch (InterruptedException ie) {
                 continue;
             }
 
         }
+
+        // All service activity ended so we can quit the service at this point
 
         Log.d(mStopwatchOngoingThread.getName(), "Service stopping");
 
@@ -219,16 +249,27 @@ public class StopwatchService extends Service implements Runnable {
 
     }
 
+    /**
+     * @return Activation condition for whether the service should cater an ongoing notification
+     */
     private boolean activateOngoingStopwatch() {
         return mStopwatch != null && mStopwatch.isActive(true) && clientAttached == false;
+        // This will also return true if the timer is paused as the timer is still relevant
     }
 
+
+    /**
+     * Binder for this service
+     */
     public class ServiceBinder extends Binder {
         StopwatchService getService() {
             return StopwatchService.this;
         }
     }
 
+    /**
+     * Listener for broadcasts to service - only used for stopwatch resets
+     */
     public class ServiceBroadcastReceiver extends BroadcastReceiver {
 
         @Override

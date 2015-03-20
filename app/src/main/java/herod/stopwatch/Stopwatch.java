@@ -21,6 +21,11 @@ public class Stopwatch implements Serializable {
         reset();
     }
 
+    /**
+     * Returns whether the stopwatch timer is active or not
+     * @param orPaused also tests for whether the timer is paused (and so still in use)
+     * @return active state of the stopwatch
+     */
     public boolean isActive(boolean orPaused) {
         return active || (orPaused && startTime > 0);
     }
