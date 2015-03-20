@@ -10,6 +10,9 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Created by Matthew Herod on 19/03/15.
+ */
 public class StopwatchLapAdapter extends RecyclerView.Adapter<StopwatchLapAdapter.ViewHolder> {
 
     private static final String TAG = StopwatchLapAdapter.class.getSimpleName();
