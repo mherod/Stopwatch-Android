@@ -23,7 +23,7 @@
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:text="0"
-            android:textSize="24sp"
+            android:textSize="@dimen/timer_lap_text_size"
             android:textColor="@android:color/black"
             android:minLines="1"
             android:layout_alignParentTop="true"
