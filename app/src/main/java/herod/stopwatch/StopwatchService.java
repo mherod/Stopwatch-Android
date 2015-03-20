@@ -7,6 +7,7 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Binder;
@@ -25,7 +26,7 @@ public class StopwatchService extends Service implements Runnable {
     private final String CMD_TOGGLE = "toggle";
     private final String CMD_RESET = "reset";
 
-    private final ServiceBroadcastReceiver mServiceBroadcastReceiver = new ServiceBroadcastReceiver();
+    private ServiceBroadcastReceiver mServiceBroadcastReceiver;
 
     private final IBinder mServiceBinder = new ServiceBinder();
 
@@ -51,6 +52,8 @@ public class StopwatchService extends Service implements Runnable {
 
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
+        mServiceBroadcastReceiver = new ServiceBroadcastReceiver();
+
         mStopwatchOngoingThread = new Thread(this);
         mStopwatchOngoingThread.setName("stopwatchOngoingThread");
 
@@ -62,8 +65,10 @@ public class StopwatchService extends Service implements Runnable {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        // registerReceiver(mServiceBroadcastReceiver, new IntentFilter("herod.stopwatch"));
-        // the IntentFilter isn't really relevant for our usage
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(CMD_TOGGLE);
+        intentFilter.addAction(CMD_RESET);
+        registerReceiver(mServiceBroadcastReceiver, intentFilter);
 
         try {
             mStopwatchOngoingThread.start();
@@ -116,28 +121,15 @@ public class StopwatchService extends Service implements Runnable {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
 
-        // unregisterReceiver(mServiceBroadcastReceiver);
+        unregisterReceiver(mServiceBroadcastReceiver);
     }
 
     public NotificationCompat.Builder createNotification(Context context) {
 
-        final Intent toggleIntent = new Intent(CMD_TOGGLE)
-                .setClass(context, ServiceBroadcastReceiver.class);
+        final PendingIntent resetPendingIntent = PendingIntent.getBroadcast(
+                this, 0, new Intent(CMD_RESET), PendingIntent.FLAG_UPDATE_CURRENT);
 
-        final Intent resetIntent = new Intent(CMD_TOGGLE)
-                .setClass(context, ServiceBroadcastReceiver.class);
-
-        PendingIntent togglePendingIntent = PendingIntent.getBroadcast(
-                this,
-                0,
-                toggleIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-
-        PendingIntent resetPendingIntent = PendingIntent.getBroadcast(
-                this,
-                0,
-                resetIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+        int lapCount = getStopwatch().getLapTimes().size();
 
         final Bitmap picture = BitmapFactory.decodeResource(getResources(), R.drawable.ic_stopwatch_light);
 
@@ -149,22 +141,19 @@ public class StopwatchService extends Service implements Runnable {
                 .setLargeIcon(picture)
                 .setAutoCancel(true)
                 .setTicker(null)
-                // .setNumber(1) // TODO: number of active timers or saved lap
+                .setNumber(lapCount)
                 .setShowWhen(false)
                 .setContentIntent(
                         PendingIntent.getActivity(context, 0,
                                 new Intent(context, StopwatchActivity.class),
                                 PendingIntent.FLAG_UPDATE_CURRENT))
                 .addAction(
-                        R.drawable.ic_pause_light,
-                        getString(R.string.action_pause),
-                        togglePendingIntent
-                )
-                .addAction(
                         R.drawable.ic_reset_light,
                         getString(R.string.action_reset),
                         resetPendingIntent
                 );
+
+
 
         return builder;
     }
@@ -240,25 +229,17 @@ public class StopwatchService extends Service implements Runnable {
 
     public class ServiceBroadcastReceiver extends BroadcastReceiver {
 
-        public ServiceBroadcastReceiver() {
-
-        }
-
         @Override
         public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "onReceive");
 
-            Log.d(TAG, "onRec");
+            String action = intent.getAction();
 
-            CharSequence cmd = intent.getCharSequenceExtra(CMD);
-            if (cmd == null) {
+            if (action == null) {
                 return;
-            } else if (cmd.equals(CMD_TOGGLE)) {
-                mStopwatch.toggle();
-            } else if (cmd.equals(CMD_RESET)) {
+            } else if (action.equals(CMD_RESET)) {
                 mStopwatch.reset();
             }
-
-            Log.d(TAG, CMD);
 
         }
     }

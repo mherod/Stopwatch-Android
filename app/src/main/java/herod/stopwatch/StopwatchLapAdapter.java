@@ -19,11 +19,12 @@ public class StopwatchLapAdapter extends RecyclerView.Adapter<StopwatchLapAdapte
     private final List<Long> mLapTimes = new ArrayList<Long>();
 
     public StopwatchLapAdapter() {
-        addLap(0, 102345, 383873);
 
     }
 
-    public void addLap(long... lapTimes) {
+    public void setLapTimes(List<Long> lapTimes) {
+        mLapTimes.clear();
+
         for (long lapTime : lapTimes) {
             mLapTimes.add(0, lapTime);
         }
@@ -44,11 +45,7 @@ public class StopwatchLapAdapter extends RecyclerView.Adapter<StopwatchLapAdapte
 
     @Override
     public void onBindViewHolder(final ViewHolder vh, int i) {
-        int lapNumber = mLapTimes.size() - i;
-        String lapText = mContext.getString(R.string.action_lap) + " " +
-                lapNumber + " - " +
-                Stopwatch.formatElapsedTime(mLapTimes.get(i), true);
-        vh.mLapTextView.setText(lapText);
+        vh.mLapTextView.setText(Stopwatch.formatElapsedTime(mLapTimes.get(i), true));
     }
 
     @Override

@@ -6,8 +6,8 @@
     android:padding="10dp">
 
     <TextView
-        android:layout_width="280dp"
-        android:layout_height="280dp"
+        android:layout_width="@dimen/timer_shape_size"
+        android:layout_height="@dimen/timer_shape_size"
         android:gravity="center"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="0"

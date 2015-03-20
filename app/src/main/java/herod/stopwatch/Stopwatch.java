@@ -29,6 +29,7 @@ public class Stopwatch implements Serializable {
         totalTime = 0;
         startTime = 0;
         active = false;
+        lapTimes.clear();
     }
 
     public void start() {

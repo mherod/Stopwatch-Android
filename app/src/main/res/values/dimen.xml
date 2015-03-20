@@ -6,4 +6,6 @@
     <dimen name="timer_button_margin">80dp</dimen>
 
     <dimen name="timer_button_size">50dp</dimen>
+
+    <dimen name="timer_shape_size">280dp</dimen>
 </resources>

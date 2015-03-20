@@ -13,7 +13,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -67,16 +66,22 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
 
         mPlayImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View arg0) {
+            public void onClick(View view) {
                 getStopwatch().toggle();
                 syncComponents();
             }
         });
         mResetImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View arg0) {
-                getStopwatch().reset();
+            public void onClick(View view) {
+                Stopwatch stopwatch = getStopwatch();
+                if (stopwatch.isActive(false)) {
+                    stopwatch.lap();
+                } else {
+                    stopwatch.reset();
+                }
                 syncComponents();
+                syncLapRecyclerView();
             }
         });
 
@@ -86,15 +91,7 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
         mLapRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         mStopwatchLapAdapter = new StopwatchLapAdapter();
-
         mLapRecyclerView.setAdapter(mStopwatchLapAdapter);
-        mLapRecyclerView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                Log.d("", "TOUCH ---  " + motionEvent.getActionMasked());
-                return false;
-            }
-        });
     }
 
     @Override
@@ -128,30 +125,19 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
     @Override
     protected void onDestroy() {
         requestThreadStop = true;
-
         super.onDestroy();
     }
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        // getMenuInflater().inflate(R.menu.menu_timer, menu);
+        // No menu actions are necessary
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        // if (id == R.id.action_settings) {
-        //    return true;
-        // }
-
+        // No menu actions are implemented
         return super.onOptionsItemSelected(item);
     }
 
@@ -185,16 +171,23 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
     }
 
     public void syncComponents() {
-        Stopwatch stopwatch = getStopwatch();
-
-        if (stopwatch.isActive(false)) {
+        if (getStopwatch().isActive(false)) {
             mPlayImageButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_pause_light));
+            mPlayImageButton.setContentDescription(getString(R.string.action_pause));
+
+            mResetImageButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_add_light));
+            mResetImageButton.setContentDescription(getString(R.string.action_lap));
         } else {
             mPlayImageButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_play_light));
+            mPlayImageButton.setContentDescription(getString(R.string.action_play));
+
+            mResetImageButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_reset_light));
+            mResetImageButton.setContentDescription(getString(R.string.action_reset));
         }
+    }
 
-        // mStopwatchLapAdapter.
-
+    public void syncLapRecyclerView() {
+        mStopwatchLapAdapter.setLapTimes(getStopwatch().getLapTimes());
     }
 
     public final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -205,6 +198,7 @@ public class StopwatchActivity extends ActionBarActivity implements Runnable {
             mStopwatchService.notifyClientAttached();
 
             syncComponents();
+            syncLapRecyclerView();
         }
 
         public void onServiceDisconnected(ComponentName className) {
